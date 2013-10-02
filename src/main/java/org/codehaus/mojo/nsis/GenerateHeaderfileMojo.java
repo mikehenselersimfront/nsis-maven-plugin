@@ -122,7 +122,7 @@ public class GenerateHeaderfileMojo
                                  + "\"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0} {1}\"",
                              project.getName(),
                              project.getVersion() );
-                writer.println( "!define PROJECT_STARTMENU_FOLDER \"{0}\\{1}\\{2} {3}\"", new Object[] { "${SMPROGRAMS}",
+                writer.println( "!define PROJECT_STARTMENU_FOLDER \"{0}\\{1}\\{2} {3}\"", new Object[] { "$SMPROGRAMS",
                     project.getOrganization().getName(), project.getName(), project.getVersion() } );
             }
             else
