@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.digitalmediaserver.nsis.io;
 
 /**
  * Generic handler for consuming ProcessOutput on a line by line basis.
- * 
+ *
+ * @version $Id: ProcessOutputConsumer.java 18289 2013-05-10 12:37:34Z rfscholte$
  * @author <a href="mailto:joakime@apache.org">Joakim Erdfelt</a>
- * @version $Id: ProcessOutputConsumer.java 18289 2013-05-10 12:37:34Z rfscholte $
  */
-public interface ProcessOutputConsumer
-{
-    /**
-     * Consume a line of output from the executing process
-     * 
-     * @param line the line of text to consume
-     */
-    void consumeOutputLine( String line );
+public interface ProcessOutputConsumer {
+
+	/**
+	 * Consume a line of output from the executing process.
+	 *
+	 * @param line the line of text to consume
+	 */
+	void consumeOutputLine(String line);
 }

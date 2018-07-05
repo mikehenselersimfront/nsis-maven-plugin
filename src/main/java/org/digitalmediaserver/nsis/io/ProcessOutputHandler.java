@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.digitalmediaserver.nsis.io;
 
 import java.io.BufferedReader;
@@ -21,128 +20,107 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-
 import org.codehaus.plexus.util.IOUtil;
 
 /**
  * Variation on the StreamPumper theme.
- * 
+ *
+ * @version $Id: ProcessOutputHandler.java 18289 2013-05-10 12:37:34Z rfscholte$
  * @author <a href="mailto:joakime@apache.org">Joakim Erdfelt</a>
- * @version $Id: ProcessOutputHandler.java 18289 2013-05-10 12:37:34Z rfscholte $
  */
-public class ProcessOutputHandler
-    implements Runnable
-{
-    private static final int SIZE = 1024;
+public class ProcessOutputHandler implements Runnable {
 
-    /**
-     * The flag indicating if the handler is done or not. Can be set true to force handler to be done.
-     */
-    private boolean done;
+	private static final int SIZE = 1024;
 
-    private BufferedReader in;
+	/**
+	 * The flag indicating if the handler is done or not. Can be set true to
+	 * force handler to be done.
+	 */
+	private boolean done;
 
-    private ProcessOutputConsumer consumer = null;
+	private BufferedReader in;
 
-    private PrintWriter out = null;
+	private ProcessOutputConsumer consumer = null;
 
-    public ProcessOutputHandler( InputStream in )
-    {
-        this.in = new BufferedReader( new InputStreamReader( in ), SIZE );
-    }
+	private PrintWriter out = null;
 
-    public ProcessOutputHandler( InputStream in, PrintWriter writer )
-    {
-        this( in );
+	public ProcessOutputHandler(InputStream in) {
+		this.in = new BufferedReader(new InputStreamReader(in), SIZE);
+	}
 
-        out = writer;
-    }
+	public ProcessOutputHandler(InputStream in, PrintWriter writer) {
+		this(in);
 
-    public ProcessOutputHandler( InputStream in, PrintWriter writer, ProcessOutputConsumer consumer )
-    {
-        this( in );
-        this.out = writer;
-        this.consumer = consumer;
-    }
+		out = writer;
+	}
 
-    public ProcessOutputHandler( InputStream in, ProcessOutputConsumer consumer )
-    {
-        this( in );
+	public ProcessOutputHandler(InputStream in, PrintWriter writer, ProcessOutputConsumer consumer) {
+		this(in);
+		this.out = writer;
+		this.consumer = consumer;
+	}
 
-        this.consumer = consumer;
-    }
+	public ProcessOutputHandler(InputStream in, ProcessOutputConsumer consumer) {
+		this(in);
 
-    public void close()
-    {
-        IOUtil.close( out );
-    }
+		this.consumer = consumer;
+	}
 
-    public void flush()
-    {
-        if ( out != null )
-        {
-            out.flush();
-        }
-    }
+	public void close() {
+		IOUtil.close(out);
+	}
 
-    public boolean isDone()
-    {
-        return done;
-    }
+	public void flush() {
+		if (out != null) {
+			out.flush();
+		}
+	}
 
-    public void run()
-    {
-        try
-        {
-            String s = in.readLine();
+	public boolean isDone() {
+		return done;
+	}
 
-            while ( s != null )
-            {
-                consumeLine( s );
+	@Override
+	public void run() {
+		try {
+			String s = in.readLine();
 
-                if ( out != null )
-                {
-                    out.println( s );
+			while (s != null) {
+				consumeLine(s);
 
-                    out.flush();
-                }
+				if (out != null) {
+					out.println(s);
 
-                s = in.readLine();
-            }
-        }
-        catch ( IOException e )
-        {
-            // Catch IOException blindly.
-        }
-        finally
-        {
-            IOUtil.close( in );
+					out.flush();
+				}
 
-            done = true;
+				s = in.readLine();
+			}
+		} catch (IOException e) {
+			// Catch IOException blindly.
+		} finally {
+			IOUtil.close(in);
 
-            synchronized ( this )
-            {
-                this.notifyAll();
-            }
-        }
-    }
+			done = true;
 
-    public void startThread()
-    {
-        Thread thread = new Thread( this, "ProcessOutputHandler" );
-        thread.start();
-    }
+			synchronized (this) {
+				this.notifyAll();
+			}
+		}
+	}
 
-    private void consumeLine( String line )
-    {
-        if ( consumer != null )
-        {
-            consumer.consumeOutputLine( line );
-        }
-    }
+	public void startThread() {
+		Thread thread = new Thread(this, "ProcessOutputHandler");
+		thread.start();
+	}
 
-    public void setDone( boolean done )
-    {
-        this.done = done;
-    }
+	private void consumeLine(String line) {
+		if (consumer != null) {
+			consumer.consumeOutputLine(line);
+		}
+	}
+
+	public void setDone(boolean done) {
+		this.done = done;
+	}
 }
