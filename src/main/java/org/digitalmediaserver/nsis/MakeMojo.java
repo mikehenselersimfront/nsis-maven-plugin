@@ -39,6 +39,7 @@ import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.io.InputStreamFacade;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
+import org.digitalmediaserver.nsis.Utils.CompressionType;
 import org.digitalmediaserver.nsis.io.ProcessOutputConsumer;
 import org.digitalmediaserver.nsis.io.ProcessOutputHandler;
 
@@ -309,25 +310,5 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 		int extensionIndex = finalName.lastIndexOf('.');
 
 		return new File(basedir, finalName.substring(0, extensionIndex) + classifier + finalName.substring(extensionIndex));
-	}
-
-	/**
-	 * An enum representing the supported compression types.
-	 *
-	 * @author Nadahar
-	 */
-	public enum CompressionType {
-
-		/**
-		 * The {@code DEFLATE} compression algorithm used in ZIP, gzip and
-		 * others
-		 */
-		zlib,
-
-		/** The bzip2 compression using the Burrows–Wheeler algorithm */
-		bzip2,
-
-		/** The Lempel–Ziv–Markov chain compression algorithm used by 7-zip */
-		lzma
 	}
 }
