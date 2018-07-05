@@ -22,6 +22,10 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.text.MessageFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -63,10 +67,11 @@ public class GenerateHeaderfileMojo extends AbstractMojo {
 	private String classifier;
 
 	/**
-	 * Additional variables that are to be written to the project.nsh file
+	 * A map of additional defines which will be passed to the execution of
+	 * {@code makensis}.
 	 */
 	@Parameter
-	private Variable[] variables;
+	private Map<String, String> defines = new HashMap<String, String>();
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
@@ -127,9 +132,9 @@ public class GenerateHeaderfileMojo extends AbstractMojo {
 				writer.println("; The project organization section is missing from your pom.xml");
 			}
 
-			if (variables != null) {
-				for (Variable variable : variables) {
-					writer.println("!define PROJECT_{0} \"{1}\"", variable.getKey().toUpperCase(), variable.getValue());
+			if (defines != null) {
+				for (Entry<String, String> entry : defines.entrySet()) {
+					writer.println("!define %1$s \"%2$s\"", entry.getKey().toUpperCase(Locale.ROOT), entry.getValue());
 				}
 			}
 		} catch (IOException e) {

@@ -52,6 +52,12 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 
 	private static final String LINE_SEPARATOR = "\r\n";
 
+	/** The default compression {@link CompressionType} */
+	public static final CompressionType DEFAULT_COMPRESSION = CompressionType.zlib;
+
+	/** The default {@link CompressionType#lzma} dictionary size */
+	public static final int DEFAULT_LZMA_DICT_SIZE = 8;
+
 	/**
 	 * Indicates if the execution should be disabled. If true, nothing will
 	 * occur during execution.
@@ -74,12 +80,6 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 	private String makensisBin;
 
 	/**
-	 * Compression settings
-	 */
-	@Parameter(required = false)
-	private Compression compression;
-
-	/**
 	 * The main setup script.
 	 */
 	@Parameter(property = "nsis.scriptfile", defaultValue = "setup.nsi", required = true)
@@ -96,6 +96,34 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 	 */
 	@Parameter(defaultValue = "${project}", required = true, readonly = true)
 	private MavenProject project;
+
+	/**
+	 * The {@link CompressionType} to apply to {@link #scriptFile}.
+	 */
+	@Parameter(property = "nsis.compression")
+	private CompressionType compression;
+
+	/**
+	 * Whether or not the compression defined in {@link #compression} is
+	 * {@code FINAL}.
+	 */
+	@Parameter(property = "nsis.compression.final")
+	private boolean compressionIsFinal;
+
+	/**
+	 * Whether or not the compression defined in {@link #compression} is
+	 * {@code SOLID}.
+	 */
+	@Parameter(property = "nsis.compression.solid")
+	private boolean compressionIsSolid;
+
+	/**
+	 * The dictionary size to use if {@link #compression} is
+	 * {@link CompressionType#lzma}. Defaults to
+	 * {@value #DEFAULT_LZMA_DICT_SIZE}.
+	 */
+	@Parameter(property = "nsis.compression.lzma.dictsize")
+	private int compressionDictSize = DEFAULT_LZMA_DICT_SIZE;
 
 	/**
 	 * A map of environment variables which will be passed to the execution of
@@ -240,20 +268,20 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 			File file = new File(project.getBuild().getDirectory(), scriptFileFile.getName());
 
 			// ignore setting for
-			if (compression != null && !compression.isDefault()) {
+			if (compression != null && compression != DEFAULT_COMPRESSION) {
 				String contents = FileUtils.fileRead(scriptFileFile);
 				StringBuffer buf = new StringBuffer();
 				buf.append("SetCompressor");
-				if (compression.isDoFinal()) {
+				if (compressionIsFinal) {
 					buf.append(" /FINAL");
 				}
-				if (compression.isDoSolid()) {
+				if (compressionIsSolid) {
 					buf.append(" /SOLID");
 				}
-				buf.append(" " + compression.getType().name());
+				buf.append(" " + compression.name());
 				buf.append(LINE_SEPARATOR);
 
-				buf.append("SetCompressorDictSize " + compression.getDictionarySize());
+				buf.append("SetCompressorDictSize " + compressionDictSize);
 				buf.append(LINE_SEPARATOR);
 
 				buf.append(LINE_SEPARATOR);
@@ -281,5 +309,25 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 		int extensionIndex = finalName.lastIndexOf('.');
 
 		return new File(basedir, finalName.substring(0, extensionIndex) + classifier + finalName.substring(extensionIndex));
+	}
+
+	/**
+	 * An enum representing the supported compression types.
+	 *
+	 * @author Nadahar
+	 */
+	public enum CompressionType {
+
+		/**
+		 * The {@code DEFLATE} compression algorithm used in ZIP, gzip and
+		 * others
+		 */
+		zlib,
+
+		/** The bzip2 compression using the Burrows–Wheeler algorithm */
+		bzip2,
+
+		/** The Lempel–Ziv–Markov chain compression algorithm used by 7-zip */
+		lzma
 	}
 }
