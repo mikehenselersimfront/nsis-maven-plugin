@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.codehaus.mojo.nsis;
+package org.digitalmediaserver.nsis;
 
 import java.io.File;
 import java.io.FileWriter;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.codehaus.mojo.nsis.io;
+package org.digitalmediaserver.nsis.io;
 
 import java.io.BufferedReader;
 import java.io.IOException;

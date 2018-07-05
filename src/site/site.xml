@@ -15,8 +15,5 @@
       <item name="Usage" href="./usage.html"/>
     </menu>
 
-    <menu name="Examples">
-      <item name="Sample NSIS Project" href="./examples/sample-nsis-project.html"/>
-    </menu>
   </body>
 </project>

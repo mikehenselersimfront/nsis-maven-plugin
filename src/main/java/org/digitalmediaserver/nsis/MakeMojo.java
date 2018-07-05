@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.codehaus.mojo.nsis;
+package org.digitalmediaserver.nsis;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -35,14 +34,14 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.mojo.nsis.Compression.Type;
-import org.codehaus.mojo.nsis.io.ProcessOutputConsumer;
-import org.codehaus.mojo.nsis.io.ProcessOutputHandler;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.io.InputStreamFacade;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
+import org.digitalmediaserver.nsis.Compression.Type;
+import org.digitalmediaserver.nsis.io.ProcessOutputConsumer;
+import org.digitalmediaserver.nsis.io.ProcessOutputHandler;
 
 /**
  * Compile the <code>setup.nsi</code> into an installer executable.

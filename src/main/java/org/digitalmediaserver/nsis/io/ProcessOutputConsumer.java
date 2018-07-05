@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.codehaus.mojo.nsis.io;
+package org.digitalmediaserver.nsis.io;
 
 /**
  * Generic handler for consuming ProcessOutput on a line by line basis.
