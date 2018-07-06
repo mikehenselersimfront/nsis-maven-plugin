@@ -19,108 +19,69 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import org.codehaus.plexus.util.IOUtil;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Variation on the StreamPumper theme.
  *
  * @version $Id: ProcessOutputHandler.java 18289 2013-05-10 12:37:34Z rfscholte$
  * @author <a href="mailto:joakime@apache.org">Joakim Erdfelt</a>
+ * @author Nadahar
  */
 public class ProcessOutputHandler implements Runnable {
 
 	private static final int SIZE = 1024;
 
+	private final BufferedReader reader;
+
+	private final ProcessOutputConsumer consumer;
+
 	/**
-	 * The flag indicating if the handler is done or not. Can be set true to
-	 * force handler to be done.
+	 * Creates a new instance using the specified parameters.
+	 *
+	 * @param inputStream the {@link InputStream} to handle.
+	 * @param consumer the {@link ProcessOutputConsumer} that will consume the
+	 *            output.
+	 * @param inputCharset the {@link Charset} to use when interpreting the
+	 *            {@link InputStream}.
 	 */
-	private boolean done;
-
-	private BufferedReader in;
-
-	private ProcessOutputConsumer consumer = null;
-
-	private PrintWriter out = null;
-
-	public ProcessOutputHandler(InputStream in) {
-		this.in = new BufferedReader(new InputStreamReader(in), SIZE);
-	}
-
-	public ProcessOutputHandler(InputStream in, PrintWriter writer) {
-		this(in);
-
-		out = writer;
-	}
-
-	public ProcessOutputHandler(InputStream in, PrintWriter writer, ProcessOutputConsumer consumer) {
-		this(in);
-		this.out = writer;
+	public ProcessOutputHandler(InputStream inputStream, ProcessOutputConsumer consumer, Charset inputCharset) {
+		this.reader = new BufferedReader(
+			new InputStreamReader(inputStream, inputCharset == null ? StandardCharsets.UTF_8 : inputCharset),
+			SIZE
+		);
 		this.consumer = consumer;
-	}
-
-	public ProcessOutputHandler(InputStream in, ProcessOutputConsumer consumer) {
-		this(in);
-
-		this.consumer = consumer;
-	}
-
-	public void close() {
-		IOUtil.close(out);
-	}
-
-	public void flush() {
-		if (out != null) {
-			out.flush();
-		}
-	}
-
-	public boolean isDone() {
-		return done;
 	}
 
 	@Override
 	public void run() {
 		try {
-			String s = in.readLine();
+			String line = reader.readLine();
 
-			while (s != null) {
-				consumeLine(s);
-
-				if (out != null) {
-					out.println(s);
-
-					out.flush();
+			while (line != null) {
+				if (consumer != null) {
+					consumer.consumeOutputLine(line);
 				}
 
-				s = in.readLine();
+				line = reader.readLine();
 			}
 		} catch (IOException e) {
 			// Catch IOException blindly.
 		} finally {
-			IOUtil.close(in);
-
-			done = true;
-
-			synchronized (this) {
-				this.notifyAll();
+			try {
+				reader.close();
+			} catch (IOException e) {
+				// Just catch
 			}
 		}
 	}
 
+	/**
+	 * Starts this {@link ProcessOutputConsumer}.
+	 */
 	public void startThread() {
 		Thread thread = new Thread(this, "ProcessOutputHandler");
 		thread.start();
-	}
-
-	private void consumeLine(String line) {
-		if (consumer != null) {
-			consumer.consumeOutputLine(line);
-		}
-	}
-
-	public void setDone(boolean done) {
-		this.done = done;
 	}
 }

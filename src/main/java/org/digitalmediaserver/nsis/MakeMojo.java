@@ -15,11 +15,13 @@
  */
 package org.digitalmediaserver.nsis;
 
+import static org.digitalmediaserver.nsis.Utils.*;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +41,6 @@ import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.io.InputStreamFacade;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
-import org.digitalmediaserver.nsis.Utils.CompressionType;
 import org.digitalmediaserver.nsis.io.ProcessOutputConsumer;
 import org.digitalmediaserver.nsis.io.ProcessOutputHandler;
 
@@ -203,20 +204,21 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 			}
 		}
 
+		Charset charset = IS_WINDOWS ? Charset.defaultCharset() : StandardCharsets.UTF_8;
 		try {
 			long start = System.currentTimeMillis();
 			Process process = builder.start();
-			ProcessOutputHandler output = new ProcessOutputHandler(process.getInputStream(), this);
+			ProcessOutputHandler output = new ProcessOutputHandler(process.getInputStream(), this, charset);
 			output.startThread();
 
 			int status;
 			try {
 				status = process.waitFor();
 			} catch (InterruptedException e) {
-				status = process.exitValue();
+				getLog().error("Makensis execution was interrupted before it could finish");
+				process.destroy();
+				status = -1;
 			}
-
-			output.setDone(true);
 
 			if (status != 0) {
 				throw new MojoExecutionException("Execution of makensis compiler failed. See output above for details.");
