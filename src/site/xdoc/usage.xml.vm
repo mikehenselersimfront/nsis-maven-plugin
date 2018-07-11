@@ -6,8 +6,8 @@
     <section name="NSIS Maven Plugin">
       <p>
         The NSIS Maven Plugin, utilizes the NSIS command line installer
-        script compiler to generate a windows installer exe from a
-        setup.nsi script.
+        script compiler to generate a Windows installer executable from a
+        NSIS script.
       </p>
 
       <p>
@@ -15,15 +15,13 @@
       </p>
 
       <ul>
-        <li>Generate project.nsh containing variables from project's pom.xml suitable for inclusion in the setup.nsi main script. (see <a href="generate-project-mojo.html">nsis:generate-project</a> goal)</li>
-        <li>Compile setup.nsi into a windows installer EXE. (See <a href="compile-mojo.html">nsis:compile</a> goal)</li>
-        <li>Attach compiled installer EXE to the build deployment plan so that the install and deploy phases of the default lifecycle can process the created exe.</li>
-        <li>Continuous Integration friendly.</li>
-        <li>Maven 2 Repository system friendly.</li>
+        <li>Generate a header file (<code>project.nsh</code>) containing variables from project's <code>pom.xml</code> suitable for inclusion in the main script. (see <a href="generate-headerfile-mojo.html">nsis:generate-headerfile</a> goal)</li>
+        <li>Compile the NSIS script into a Windows installer executable. (See <a href="make-mojo.html">nsis:make</a> goal)</li>
+        <li>Attach built installer to the build deployment plan so that the install and deploy phases of the default lifecycle can process the created file.</li>
       </ul>
 
       <p>
-        Example flow / usage of the nsis-maven-plugin goals.
+        Example flow / usage of the <code>nsis-maven-plugin</code> goals.
       </p>
 
       <div class="overview">
@@ -38,7 +36,7 @@
 <pre>
 &lt;project&gt;
   &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
-  &lt;groupId&gt;<span class="groupId">com.company.product</span>&lt;/groupId&gt;
+  &lt;groupId&gt;<span class="groupId">org.organization.product</span>&lt;/groupId&gt;
   &lt;artifactId&gt;<span class="artifactId">my-installer</span>&lt;/artifactId&gt;
   &lt;version&gt;<span class="versionId">1.1</span>&lt;/version&gt;
   &lt;packaging&gt;pom&lt;/packaging&gt;
@@ -97,8 +95,8 @@
           <tr>
             <td valign="middle" align="center">
               <div class="file">
-                <h2>User Created File</h2>
-                /setup.nsi
+                <h2>Script File</h2>
+                setup.nsi
               </div>
             </td>
             <td valign="middle" align="center">
@@ -109,7 +107,7 @@
             <td valign="middle" align="center">
               <div class="goal">
                 <h2>Plugin Goal</h2>
-                <a href="compile-mojo.html">nsis:compile</a>
+                <a href="make-mojo.html">nsis:make</a>
               </div>
             </td>
           </tr>
@@ -127,8 +125,8 @@
             <td></td>
             <td valign="middle" align="center">
               <div class="file">
-                <h2>Compile Output</h2>
-                /target/<span class="artifactId">my-installer</span>-<span class="versionId">1.1</span>.exe
+                <h2>Build Output</h2>
+                target/<span class="artifactId">my-installer</span>-<span class="versionId">1.1</span>.exe
               </div>
             </td>
           </tr>
@@ -138,4 +136,3 @@
     </section>
   </body>
 </document>
-
