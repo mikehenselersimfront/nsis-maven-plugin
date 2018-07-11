@@ -63,6 +63,55 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 	public static final int DEFAULT_LZMA_DICT_SIZE = 8;
 
 	/**
+	 * Whether or not {@link #outputFile} should be attached to the Maven build.
+	 * You probably want an installer to be attached, but if you build another
+	 * executable that might not be the case.
+	 */
+	@Parameter(property = "nsis.attachArtifact", defaultValue = "true")
+	private boolean attachArtifact;
+
+	/**
+	 * Whether or not to automatically set the {@code NSISDIR} environment
+	 * variable based on the folder where the {@code makensis} executable is
+	 * located. Useful when {@code makensis} is compiled with
+	 * {@code NSIS_CONFIG_CONST_DATA_PATH=no}.
+	 */
+	@Parameter(property = "nsis.auto.nsisdir", defaultValue = "true", required = true)
+	private boolean autoNsisDir;
+
+	/** The classifier to append to {@link outputFile}'s name. */
+	@Parameter(property = "nsis.classifier")
+	private String classifier;
+
+	/**
+	 * The {@link CompressionType} to apply to {@link #scriptFile}.
+	 */
+	@Parameter(property = "nsis.compression")
+	private CompressionType compression;
+
+	/**
+	 * The dictionary size to use if {@link #compression} is
+	 * {@link CompressionType#lzma}. Defaults to
+	 * {@value #DEFAULT_LZMA_DICT_SIZE}.
+	 */
+	@Parameter(property = "nsis.compression.lzma.dictsize")
+	private int compressionDictSize = DEFAULT_LZMA_DICT_SIZE;
+
+	/**
+	 * Whether or not the compression defined in {@link #compression} is
+	 * {@code FINAL}.
+	 */
+	@Parameter(property = "nsis.compression.final")
+	private boolean compressionIsFinal;
+
+	/**
+	 * Whether or not the compression defined in {@link #compression} is
+	 * {@code SOLID}.
+	 */
+	@Parameter(property = "nsis.compression.solid")
+	private boolean compressionIsSolid;
+
+	/**
 	 * Indicates if the NSIS make operation should be disabled. If {@code true},
 	 * no action will be taken when executing {@link MakeMojo}.
 	 */
@@ -70,12 +119,11 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 	private boolean disabled;
 
 	/**
-	 * Whether or not {@link #outputFile} should be attached to the Maven build.
-	 * You probably want an installer to be attached, but if you build another
-	 * executable that might not be the case.
+	 * A map of environment variables which will be passed to the execution of
+	 * {@code makensis}.
 	 */
-	@Parameter(property = "nsis.attachArtifact", defaultValue = "true")
-	private boolean attachArtifact;
+	@Parameter
+	private Map<String, String> environmentVariables = new HashMap<String, String>();
 
 	/** The path of the generated header file. */
 	@Parameter(property = "nsis.headerfile", defaultValue = "${project.build.directory}/project.nsh", required = true)
@@ -87,6 +135,14 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 	 */
 	@Parameter(property = "nsis.headerfile.inject", defaultValue = "true", required = true)
 	private boolean injectHeaderFile;
+
+	/**
+	 * The folder to use as the working folder when running {@code makensis}.
+	 * Relative paths will be resolved from this folder. By default this is the
+	 * folder where {@link #scriptFile} is located.
+	 */
+	@Parameter(property = "nsis.makefolder")
+	private String makeFolder;
 
 	/**
 	 * The path of the {@code makensis} executable to use. The default assumes
@@ -112,23 +168,6 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 	private String makensisExecutableMacOS;
 
 	/**
-	 * The folder to use as the working folder when running {@code makensis}.
-	 * Relative paths will be resolved from this folder. By default this is the
-	 * folder where {@link #scriptFile} is located.
-	 */
-	@Parameter(property = "nsis.makefolder")
-	private String makeFolder;
-
-	/**
-	 * Whether or not to automatically set the {@code NSISDIR} environment
-	 * variable based on the folder where the {@code makensis} executable is
-	 * located. Useful when {@code makensis} is compiled with
-	 * {@code NSIS_CONFIG_CONST_DATA_PATH=no}.
-	 */
-	@Parameter(property = "nsis.auto.nsisdir", defaultValue = "true", required = true)
-	private boolean autoNsisDir;
-
-	/**
 	 * The value to use as {@code NSISDIR}. This will override
 	 * {@link #autoNsisDir} and the environment variable named {@code NSISDIR}
 	 * if set.
@@ -136,52 +175,13 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 	@Parameter(property = "nsis.nsisdir")
 	private String nsisDir;
 
-	/**
-	 * The {@link CompressionType} to apply to {@link #scriptFile}.
-	 */
-	@Parameter(property = "nsis.compression")
-	private CompressionType compression;
-
-	/**
-	 * Whether or not the compression defined in {@link #compression} is
-	 * {@code FINAL}.
-	 */
-	@Parameter(property = "nsis.compression.final")
-	private boolean compressionIsFinal;
-
-	/**
-	 * Whether or not the compression defined in {@link #compression} is
-	 * {@code SOLID}.
-	 */
-	@Parameter(property = "nsis.compression.solid")
-	private boolean compressionIsSolid;
-
-	/**
-	 * The dictionary size to use if {@link #compression} is
-	 * {@link CompressionType#lzma}. Defaults to
-	 * {@value #DEFAULT_LZMA_DICT_SIZE}.
-	 */
-	@Parameter(property = "nsis.compression.lzma.dictsize")
-	private int compressionDictSize = DEFAULT_LZMA_DICT_SIZE;
-
-	/** The path of the NSIS script file to compile. */
-	@Parameter(property = "nsis.scriptfile", defaultValue = "setup.nsi", required = true)
-	private String scriptFile;
-
 	/** The path of the executable file to build. */
 	@Parameter(property = "nsis.output.file", defaultValue = "${project.build.finalName}.exe", required = true)
 	private String outputFile;
 
-	/**
-	 * A map of environment variables which will be passed to the execution of
-	 * {@code makensis}.
-	 */
-	@Parameter
-	private Map<String, String> environmentVariables = new HashMap<String, String>();
-
-	/** The classifier to append to {@link outputFile}'s name. */
-	@Parameter(property = "nsis.classifier")
-	private String classifier;
+	/** The path of the NSIS script file to compile. */
+	@Parameter(property = "nsis.scriptfile", defaultValue = "setup.nsi", required = true)
+	private String scriptFile;
 
 	/** The verbosity level to pass to {@code makensis}. */
 	@Parameter(property = "nsis.verbosity", defaultValue = "2", required = true)
