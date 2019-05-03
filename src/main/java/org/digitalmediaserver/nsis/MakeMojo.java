@@ -462,13 +462,14 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 		if (classifier == null || classifier.isEmpty()) {
 			return baseFolder == null ? path : baseFolder.resolve(path);
 		}
+		String classifierWithHyphenPrefix = classifier;
 		if (classifier.charAt(0) != '-') {
-			classifier = "-" + classifier;
+			classifierWithHyphenPrefix = "-" + classifier;
 		}
 		int dot = outputFile.lastIndexOf('.');
 		outputFile = dot >= 0 ?
-			outputFile.substring(0, dot) + classifier + outputFile.substring(dot) :
-				outputFile + classifier;
+			outputFile.substring(0, dot) + classifierWithHyphenPrefix + outputFile.substring(dot) :
+			outputFile + classifierWithHyphenPrefix;
 		return baseFolder == null ? Paths.get(outputFile) : baseFolder.resolve(outputFile);
 	}
 }
