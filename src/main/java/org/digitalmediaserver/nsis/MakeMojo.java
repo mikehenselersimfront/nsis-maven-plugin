@@ -290,8 +290,8 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 
 		// Convert path separators
 		try {
-			Path path = Paths.get(makensisExecutable);
-			makensisExecutable = path.toRealPath().toString();
+			Path path = Paths.get(makensisExecutable).toRealPath();
+			makensisExecutable = path.toString();
 			if (autoNsisDir && isBlank(nsisDir)) {
 				path = path.getParent();
 				if (path != null) {
@@ -299,6 +299,12 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 					Path fileName = path.getFileName();
 					if (fileName != null && "bin".equals(fileName.toString().toLowerCase(Locale.ROOT))) {
 						path = path.getParent();
+					}
+
+					// `/usr/local/bin` installations or macOS Homebrew keg-only
+					Path shareNsis = path.resolve("share/nsis");
+					if (Files.exists(shareNsis)) {
+						path = shareNsis;
 					}
 				}
 				nsisDir = path == null ? null : path.toString();
