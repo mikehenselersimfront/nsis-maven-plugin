@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2019-06-13
+### Fixed
+- [@adamretter](https://github.com/adamretter) improved `autoNsisDir` resolution ([#3](https://github.com/DigitalMediaServer/nsis-maven-plugin/pull/3)).
+
 ## [1.0.1] - 2019-05-03
 ### Added
 - Created this changelog.
@@ -15,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2018-07-29
 ### First release
 
-[Unreleased]: https://github.com/DigitalMediaServer/nsis-maven-plugin/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/DigitalMediaServer/nsis-maven-plugin/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/DigitalMediaServer/nsis-maven-plugin/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/DigitalMediaServer/nsis-maven-plugin/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/DigitalMediaServer/nsis-maven-plugin/releases/tag/v1.0.0
