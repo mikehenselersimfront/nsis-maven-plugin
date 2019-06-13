@@ -67,7 +67,7 @@ This goal compiles a NSIS script and builds a Windows executable.
 |<sub>`autoNsisDir`</sub>|<sub>`nsis.auto.nsisdir`</sub>|<sub>Boolean</sub>|<sub>true</sub>|<sub>Whether or not to automatically set the `NSISDIR` environment variable based on the folder where the `makensis` executable is located. Useful when `makensis` is compiled with `NSIS_CONFIG_CONST_DATA_PATH=no`.</sub>|
 |<sub>`classifier`</sub>|<sub>`nsis.classifier`</sub>|<sub>String</sub>| |<sub>The classifier to append to `outputFile`'s name.</sub>|
 |<sub>`compression`</sub>|<sub>`nsis.compression`</sub>|<sub>Enum</sub>| <sub>`zlib`</sub>|<sub>The compression type to apply to `scriptFile` if ant. See [separate definition](#122-compression-options).</sub>|
-|<sub>`compressionDictSize`</sub>|<sub>`nsis.compression.lzma.dictsize`</sub>|<sub>Integer</sub>|<sub>`8`</sub>|<sub>The dictionary size to use if `compression` is `lzma`.</sub>|
+|<sub>`compressionDictSize`</sub>|<sub>`nsis.compression.lzma.dictsize`</sub>|<sub>Integer</sub>|<sub>`8`</sub>|<sub>The dictionary size in MB to use if `compression` is `lzma`.</sub>|
 |<sub>`compressionIsFinal`</sub>|<sub>`nsis.compression.final`</sub>|<sub>Boolean</sub>|<sub>`false`</sub>|<sub>Whether or not the compression defined in `compression` is`FINAL`.</sub>|
 |<sub>`compressionIsSolid`</sub>|<sub>`nsis.compression.solid`</sub>|<sub>Boolean</sub>|<sub>`false`</sub>|<sub>Whether or not the compression defined in `compression` is`SOLID`.</sub>|
 |<sub>`disabled`</sub>|<sub>`nsis.disabled`</sub>|<sub>Boolean</sub>|<sub>`false`</sub>|<sub>Deactivates all goals.</sub>|
