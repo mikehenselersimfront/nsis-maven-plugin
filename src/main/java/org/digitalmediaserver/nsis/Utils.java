@@ -15,10 +15,19 @@
  */
 package org.digitalmediaserver.nsis;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.apache.maven.plugin.logging.Log;
 
 /**
  * A static utility class with a few utility methods.
@@ -106,6 +115,166 @@ public final class Utils {
 
 		source = IS_WINDOWS ? source.replace("\\", "\\\\").replace("\"", "$\\\\\\\"") : source.replace("\"", "$\\\"");
 		return quote + source + quote;
+	}
+
+	/**
+	 * Tries to find the specified relative file using the system {@code PATH}
+	 * environment variable. Returns the first match in the order of the system
+	 * {@code PATH} or {@code null} if no match was found.
+	 *
+	 * @param relativePath the relative {@link Path} describing the file to
+	 *            return.
+	 * @param log the {@link Log} to log to, or {@code null} for no logging.
+	 * @param options the {@link LinkOption}s to use when resolving.
+	 * @return The matched {@link Path} or {@code null} if no match was found.
+	 * @throws IllegalArgumentException if {@code relativePath} is absolute.
+	 */
+	@Nullable
+	public static Path findInOSPath(
+		@Nullable Path relativePath,
+		@Nullable Log log,
+		LinkOption... options
+	) {
+		if (relativePath == null) {
+			return null;
+		}
+		if (relativePath.isAbsolute()) {
+			throw new IllegalArgumentException("relativePath must be relative");
+		}
+
+		List<Path> osPath = new ArrayList<>();
+		osPath.add(null);
+		osPath.addAll(getOSPath(log));
+		Path result = null;
+		List<String> extensions = new ArrayList<>();
+		extensions.add(null);
+		if (IS_WINDOWS && getExtension(relativePath) == null) {
+			for (String s : getWindowsPathExtensions()) {
+				if (!isBlank(s)) {
+					extensions.add("." + s);
+				}
+			}
+		}
+		for (String extension : extensions) {
+			for (Path path : osPath) {
+				if (path == null) {
+					path = Paths.get("").toAbsolutePath();
+				}
+				if (extension == null) {
+					result = path.resolve(relativePath);
+				} else {
+					result = path.resolve(relativePath.toString() + extension);
+				}
+				if (Files.exists(result, options) && Files.isRegularFile(result, options)) {
+					if (log != null && log.isDebugEnabled()) {
+						log.debug("Resolved \"" + result + "\" from \"" + relativePath + "\" using OS path");
+					}
+					try {
+						return result.toRealPath(options);
+					} catch (IOException e) {
+						if (log != null) {
+							log.warn("Could not get the real path of \"" + result + "\": " + e.getMessage(), e);
+						}
+						return result;
+					}
+				}
+			}
+		}
+		if (log != null && log.isDebugEnabled()) {
+			log.debug("Failed to resolve \"" + relativePath + "\" using OS path");
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the OS {@code PATH} environment variable as a {@link List} of
+	 * {@link Path}s.
+	 *
+	 * @param log the {@link Log} to log to, or {@code null} for no logging.
+	 * @return The {@link List} of {@link Path}s.
+	 */
+	@Nonnull
+	public static List<Path> getOSPath(@Nullable Log log) {
+		List<Path> result = new ArrayList<>();
+		String osPath = System.getenv("PATH");
+		if (isBlank(osPath)) {
+			return result;
+		}
+		String[] paths = osPath.split(File.pathSeparator);
+		for (String path : paths) {
+			if (isBlank(path)) {
+				continue;
+			}
+			try {
+				result.add(Paths.get(path));
+			} catch (InvalidPathException e) {
+				if (log != null) {
+					if (log.isDebugEnabled()) {
+						log.warn(
+							"Unable to resolve PATH element \"" + path +
+							"\" to a folder, it will be ignored: " + e.getMessage(),
+							e
+						);
+					} else {
+						log.warn(
+							"Unable to resolve PATH element \"" + path +
+							"\" to a folder, it will be ignored"
+						);
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * @return The Windows {@code PATHEXT} environment variable as a
+	 *         {@link List} of {@link String}s containing the extensions without
+	 *         the {@code .}.
+	 */
+	@Nonnull
+	public static List<String> getWindowsPathExtensions() {
+		List<String> result = new ArrayList<>();
+		String osPathExtensions = System.getenv("PATHEXT");
+		if (isBlank(osPathExtensions)) {
+			return result;
+		}
+		String[] extensions = osPathExtensions.split(File.pathSeparator);
+		for (String extension : extensions) {
+			result.add(extension.replace(".", ""));
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the file extension from {@code file} or {@code null} if
+	 * {@code file} has no extension.
+	 *
+	 * @param file the {@link Path} from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	@Nullable
+	public static String getExtension(@Nullable Path file) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		String name;
+		if (fileName == null || isBlank((name = fileName.toString()))) {
+			return null;
+		}
+
+		int point = name.lastIndexOf('.');
+		if (point == -1) {
+			return null;
+		}
+
+		String extension = name.substring(point + 1);
+		if (extension.contains("/") || IS_WINDOWS && extension.contains("\\")) {
+			// It's not an extension, it's a dot in a folder name
+			return null;
+		}
+		return extension;
 	}
 
 	/**

@@ -123,7 +123,7 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 	 * {@code makensis}.
 	 */
 	@Parameter
-	private Map<String, String> environmentVariables = new HashMap<String, String>();
+	private Map<String, String> environmentVariables = new HashMap<>();
 
 	/** The path of the generated header file. */
 	@Parameter(property = "nsis.headerfile", defaultValue = "${project.build.directory}/project.nsh", required = true)
@@ -290,10 +290,23 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 
 		// Convert path separators
 		try {
-			Path path = Paths.get(makensisExecutable).toRealPath();
-			makensisExecutable = path.toString();
+			Path path = Paths.get(makensisExecutable);
+			boolean exists = Files.exists(path);
+			if (exists) {
+				path = path.toRealPath();
+				makensisExecutable = path.toString();
+			}
 			if (autoNsisDir && isBlank(nsisDir)) {
-				path = path.getParent();
+				if (exists) {
+					path = path.getParent();
+				} else if (!path.isAbsolute()) {
+					path = findInOSPath(path, getLog());
+					if (path != null) {
+						path = path.getParent();
+					}
+				} else {
+					path = null;
+				}
 				if (path != null) {
 					path = path.toRealPath();
 					Path fileName = path.getFileName();
@@ -301,10 +314,12 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 						path = path.getParent();
 					}
 
-					// `/usr/local/bin` installations or macOS Homebrew keg-only
-					Path shareNsis = path.resolve("share/nsis");
-					if (Files.exists(shareNsis)) {
-						path = shareNsis;
+					if (path != null) {
+						// `/usr/local/bin` installations or macOS Homebrew keg-only
+						Path shareNsis = path.resolve("share/nsis");
+						if (Files.exists(shareNsis)) {
+							path = shareNsis;
+						}
 					}
 				}
 				nsisDir = path == null ? null : path.toString();
@@ -374,7 +389,7 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 	 */
 	@Nonnull
 	protected List<String> commandBuilder() throws MojoExecutionException {
-		List<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 
 		// Makensis binary
 		result.add(makensisExecutable);
