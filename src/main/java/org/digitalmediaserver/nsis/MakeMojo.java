@@ -197,6 +197,15 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 
 	/** For internal use */
 	private Path outputFilePath;
+    
+    @Parameter( property = "nsis.skip", defaultValue = "false", alias = "skip" )
+    private boolean skip;
+    
+      /** Check if the execution should be skipped @return true to skip */
+    protected boolean isSkip()
+    {
+        return skip;
+    }
 
 	@Override
 	public void execute() throws MojoExecutionException {
@@ -204,6 +213,12 @@ public class MakeMojo extends AbstractMojo implements ProcessOutputConsumer {
 			getLog().info("NSIS make: plugin is disabled, not doing anything");
 			return;
 		}
+        
+            if ( isSkip() )
+        {
+            getLog().info( "NSIS make: plugin is disabled because nsis.skip = true" );           
+            return;
+        }
 
 		validate();
 
